@@ -5,6 +5,9 @@ import PackageDescription
 
 let package = Package(
     name: "iPodClassicScrobbler",
+    platforms: [
+        .macOS(.v10_15)
+    ],
     dependencies: [
         // Dependencies declare other packages that this package depends on.
         // .package(url: /* package url */, from: "1.0.0"),
@@ -14,7 +17,10 @@ let package = Package(
         // Targets can depend on other targets in this package, and on products in packages this package depends on.
         .executableTarget(
             name: "iPodClassicScrobbler",
-            dependencies: []),
+            dependencies: [],
+            resources: [
+                .process("Resources")
+            ]),
         .testTarget(
             name: "iPodClassicScrobblerTests",
             dependencies: ["iPodClassicScrobbler"]),

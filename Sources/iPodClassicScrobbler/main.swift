@@ -1,1 +1,64 @@
+import Foundation
+
 print("Hello, world!")
+
+//guard var fileURL = try? FileManager.default.url(for: .documentDirectory, in: .userDomainMask, appropriateFor: nil, create: false) else {
+//    exit(EXIT_FAILURE)
+//}
+
+var fileURL = URL(fileURLWithPath: "/users/daniel/Documents", isDirectory: true)
+
+fileURL.appendPathComponent("iPodReaderProject", isDirectory: true)
+fileURL.appendPathComponent("iTunesDB", isDirectory: false)
+
+guard let fileHandle = FileHandle(forReadingAtPath: fileURL.path) else {
+    print("can't read file at \(fileURL.path)")
+    exit(EXIT_FAILURE)
+}
+
+var dataBuffer: Data
+dataBuffer = fileHandle.readData(ofLength: 4)
+print(String(data: dataBuffer, encoding: .utf8)!)
+
+// try fileHandle.seek(toOffset: 4)
+// dataBuffer = fileHandle.readData(ofLength: 4)
+// print()
+
+// try fileHandle.seek(toOffset: 8)
+// dataBuffer = fileHandle.readData(ofLength: 4)
+// print(String(data: dataBuffer, encoding: .utf8))
+
+let int = 178
+print(int.littleEndian)
+
+
+
+
+//if let fileURL = Bundle.module.url(forResource: "Resources/lyrics", withExtension: "txt") {
+//    let fileHandle = FileHandle(forReadingAtPath: fileURL.path)
+//
+//    if let fileHandle = fileHandle {
+//        var dataBuffer: Data
+//
+//        print("Offset = \(fileHandle.offsetInFile)")
+//        dataBuffer = fileHandle.readData(ofLength: 5)
+//        print(String(data: dataBuffer, encoding: .utf8)!)
+//
+//        fileHandle.seekToEndOfFile()
+//        print("Offset = \(fileHandle.offsetInFile)")
+//        dataBuffer = fileHandle.readData(ofLength: 5)
+//        print(String(data: dataBuffer, encoding: .utf8)!)
+//
+//        try! fileHandle.seek(toOffset: 30)
+//        print("Offset = \(fileHandle.offsetInFile)")
+//        dataBuffer = fileHandle.readData(ofLength: 5)
+//        print(String(data: dataBuffer, encoding: .utf8)!)
+//        fileHandle.closeFile()
+//    } else {
+//        print("No file")
+//    }
+//} else {
+//    print("Error at trying to get the lyrics")
+//}
+
+
