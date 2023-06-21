@@ -18,18 +18,49 @@ guard let fileHandle = FileHandle(forReadingAtPath: fileURL.path) else {
 
 var dataBuffer: Data
 dataBuffer = fileHandle.readData(ofLength: 4)
-print(String(data: dataBuffer, encoding: .utf8)!)
+print(String(data: dataBuffer, encoding: .utf8)!) //mhbd
 
 // try fileHandle.seek(toOffset: 4)
+dataBuffer = fileHandle.readData(ofLength: 4)
+var offset: UInt64 = UInt64(dataBuffer.parseLEUInt8()!)
+print(offset)
+
+try fileHandle.seek(toOffset: offset)
+dataBuffer = fileHandle.readData(ofLength: 4)
+print(String(data: dataBuffer, encoding: .utf8)!) // mhsd
+
+// try fileHandle.seek(toOffset: 4)
+dataBuffer = fileHandle.readData(ofLength: 4)
+offset += UInt64(dataBuffer.parseLEUInt8()!)
+
+try fileHandle.seek(toOffset: offset)
+dataBuffer = fileHandle.readData(ofLength: 4)
+print(String(data: dataBuffer, encoding: .utf8)!) // mhla
+
+dataBuffer = fileHandle.readData(ofLength: 4)
+offset += UInt64(dataBuffer.parseLEUInt8()!)
+
+try fileHandle.seek(toOffset: offset)
+dataBuffer = fileHandle.readData(ofLength: 4)
+print(String(data: dataBuffer, encoding: .utf8)!) // mhia
+
+dataBuffer =  fileHandle.readData(ofLength: 4)
+offset += UInt64(dataBuffer.parseLEUInt8()!)
+
+try fileHandle.seek(toOffset: offset)
+dataBuffer = fileHandle.readData(ofLength: 4)
+print(String(data: dataBuffer, encoding: .utf8)!)
+
+// try fileHandle.seek(toOffset: UInt64(offset))
 // dataBuffer = fileHandle.readData(ofLength: 4)
-// print()
+// print(String(data: dataBuffer, encoding: .utf8)!)
+
+
 
 // try fileHandle.seek(toOffset: 8)
 // dataBuffer = fileHandle.readData(ofLength: 4)
 // print(String(data: dataBuffer, encoding: .utf8))
 
-let int = 178
-print(int.littleEndian)
 
 
 
@@ -60,5 +91,3 @@ print(int.littleEndian)
 //} else {
 //    print("Error at trying to get the lyrics")
 //}
-
-
