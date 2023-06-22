@@ -44,12 +44,18 @@ try fileHandle.seek(toOffset: offset)
 dataBuffer = fileHandle.readData(ofLength: 4)
 print(String(data: dataBuffer, encoding: .utf8)!) // mhia
 
-dataBuffer =  fileHandle.readData(ofLength: 4)
+dataBuffer = fileHandle.readData(ofLength: 4)
 offset += UInt64(dataBuffer.parseLEUInt8()!)
 
 try fileHandle.seek(toOffset: offset)
 dataBuffer = fileHandle.readData(ofLength: 4)
 print(String(data: dataBuffer, encoding: .utf8)!)
+
+try fileHandle.seek(toOffset: offset + 28)
+let dataLength = UInt64(fileHandle.readData(ofLength: 4).parseLEUInt8()!)
+try fileHandle.seek(toOffset: offset + 40)
+let data = fileHandle.readData(ofLength: Int(dataLength))
+print(String(data: data, encoding: .utf16LittleEndian)!)
 
 // try fileHandle.seek(toOffset: UInt64(offset))
 // dataBuffer = fileHandle.readData(ofLength: 4)
