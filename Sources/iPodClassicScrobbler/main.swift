@@ -20,80 +20,135 @@ var dataBuffer: Data
 dataBuffer = fileHandle.readData(ofLength: 4)
 print(String(data: dataBuffer, encoding: .utf8)!) //mhbd
 
-// try fileHandle.seek(toOffset: 4)
 dataBuffer = fileHandle.readData(ofLength: 4)
 var offset: UInt64 = UInt64(dataBuffer.parseLEUInt8()!)
-print(offset)
+print("End of header for mhdb:", offset)
 
 try fileHandle.seek(toOffset: offset)
 dataBuffer = fileHandle.readData(ofLength: 4)
-print(String(data: dataBuffer, encoding: .utf8)!) // mhsd
+print(String(data: dataBuffer, encoding: .utf8)!) // mhsd - list holder
 
-// try fileHandle.seek(toOffset: 4)
 dataBuffer = fileHandle.readData(ofLength: 4)
-offset += UInt64(dataBuffer.parseLEUInt8()!)
+let endofMHSDHeader = offset + UInt64(dataBuffer.parseLEUInt8()!)
+print("End of header for mhsd", endofMHSDHeader)
+
+dataBuffer = fileHandle.readData(ofLength: 4)
+let endOfMHSD = offset + UInt64(dataBuffer.parseLEUInt32()!)
+print("end of mhsd", endOfMHSD)
+
+offset = endofMHSDHeader
 
 try fileHandle.seek(toOffset: offset)
 dataBuffer = fileHandle.readData(ofLength: 4)
-print(String(data: dataBuffer, encoding: .utf8)!) // mhla
+print(String(data: dataBuffer, encoding: .utf8)!) // mhla - album item
 
 dataBuffer = fileHandle.readData(ofLength: 4)
 offset += UInt64(dataBuffer.parseLEUInt8()!)
+print("End of header for mhla", offset)
 
 try fileHandle.seek(toOffset: offset)
 dataBuffer = fileHandle.readData(ofLength: 4)
-print(String(data: dataBuffer, encoding: .utf8)!) // mhia
+print(String(data: dataBuffer, encoding: .utf8)!) // mhia - album item
 
 dataBuffer = fileHandle.readData(ofLength: 4)
-offset += UInt64(dataBuffer.parseLEUInt8()!)
+let endOfHeader = offset + UInt64(dataBuffer.parseLEUInt8()!)
+print("End of header for mhia", endOfHeader)
+try fileHandle.seek(toOffset: offset + 12)
+dataBuffer = fileHandle.readData(ofLength: 4)
+print("number of strings in mhia", UInt(dataBuffer.parseLEUInt32()!))
+offset = endOfHeader
+
+try fileHandle.seek(toOffset: offset)
+dataBuffer = fileHandle.readData(ofLength: 4)
+print(String(data: dataBuffer, encoding: .utf8)!) // mhod - string holder
+
+try fileHandle.seek(toOffset: offset + 4)
+print("End of header for mhod", offset + UInt64(fileHandle.readData(ofLength: 4).parseLEUInt8()!))
+
+try fileHandle.seek(toOffset: offset + 8)
+var totalLength = UInt64(fileHandle.readData(ofLength: 4).parseLEUInt8()!)
+print("Size of mhod", totalLength)
+print("end of mhod", offset + totalLength)
+try fileHandle.seek(toOffset: offset + 28)
+var dataLength = UInt64(fileHandle.readData(ofLength: 4).parseLEUInt8()!)
+try fileHandle.seek(toOffset: offset + 40)
+var data = fileHandle.readData(ofLength: Int(dataLength))
+print(String(data: data, encoding: .utf16LittleEndian)!)
+offset += totalLength;
+
+// ---- mhod
+try fileHandle.seek(toOffset: offset)
+dataBuffer = fileHandle.readData(ofLength: 4)
+print(">", String(data: dataBuffer, encoding: .utf8)!) // mhod
+
+try fileHandle.seek(toOffset: offset + 8)
+totalLength = UInt64(fileHandle.readData(ofLength: 4).parseLEUInt8()!)
+try fileHandle.seek(toOffset: offset + 28)
+dataLength = UInt64(fileHandle.readData(ofLength: 4).parseLEUInt8()!)
+try fileHandle.seek(toOffset: offset + 40)
+data = fileHandle.readData(ofLength: Int(dataLength))
+print(String(data: data, encoding: .utf16LittleEndian)!)
+offset += totalLength;
+
+try fileHandle.seek(toOffset: offset)
+dataBuffer = fileHandle.readData(ofLength: 4)
+print(">", String(data: dataBuffer, encoding: .utf8)!) // mhod
+
+try fileHandle.seek(toOffset: offset + 8)
+totalLength = UInt64(fileHandle.readData(ofLength: 4).parseLEUInt8()!)
+try fileHandle.seek(toOffset: offset + 28)
+dataLength = UInt64(fileHandle.readData(ofLength: 4).parseLEUInt8()!)
+try fileHandle.seek(toOffset: offset + 40)
+data = fileHandle.readData(ofLength: Int(dataLength))
+print(String(data: data, encoding: .utf16LittleEndian)!)
+offset += totalLength;
 
 try fileHandle.seek(toOffset: offset)
 dataBuffer = fileHandle.readData(ofLength: 4)
 print(String(data: dataBuffer, encoding: .utf8)!)
+print("--------")
 
-try fileHandle.seek(toOffset: offset + 28)
-let dataLength = UInt64(fileHandle.readData(ofLength: 4).parseLEUInt8()!)
-try fileHandle.seek(toOffset: offset + 40)
-let data = fileHandle.readData(ofLength: Int(dataLength))
-print(String(data: data, encoding: .utf16LittleEndian)!)
+// next list holder
+offset = endOfMHSD
+try fileHandle.seek(toOffset: offset + 4)
+let mhsdHeaderSize = UInt64(fileHandle.readData(ofLength: 4).parseLEUInt32()!)
+let mhsdTotalLength = UInt64(fileHandle.readData(ofLength: 4).parseLEUInt32()!)
 
-// try fileHandle.seek(toOffset: UInt64(offset))
-// dataBuffer = fileHandle.readData(ofLength: 4)
-// print(String(data: dataBuffer, encoding: .utf8)!)
+offset += mhsdHeaderSize
+try fileHandle.seek(toOffset: offset + 4)
+let mhltHeaderSize = UInt64(fileHandle.readData(ofLength: 4).parseLEUInt32()!)
+let mhltCount = UInt64(fileHandle.readData(ofLength: 4).parseLEUInt32()!)
+print("\(mhltCount) tracks")
 
+offset += mhltHeaderSize
 
+for i in 0...(mhltCount - 1) {
+    try fileHandle.seek(toOffset: offset + 4) // skip header identifier
+    let mhitHeaderSize = UInt64(fileHandle.readData(ofLength: 4).parseLEUInt32()!)
+    let mhitTotalLength = UInt64(fileHandle.readData(ofLength: 4).parseLEUInt32()!)
+    let mhitNumberOfStrings = UInt64(fileHandle.readData(ofLength: 4).parseLEUInt32()!)
+    try fileHandle.seek(toOffset: offset + 80)
+    let mhitPlayCount = UInt(fileHandle.readData(ofLength: 4).parseLEUInt32()!)
+    let mhitPlayCount2 = UInt(fileHandle.readData(ofLength: 4).parseLEUInt32()!)
 
-// try fileHandle.seek(toOffset: 8)
-// dataBuffer = fileHandle.readData(ofLength: 4)
-// print(String(data: dataBuffer, encoding: .utf8))
+    print("\(mhitNumberOfStrings) \(mhitPlayCount) \(mhitPlayCount2)")
 
+    var contentOffset = offset + mhitHeaderSize
+    for j in 0...(mhitNumberOfStrings - 1) {
+        try fileHandle.seek(toOffset: contentOffset + 4) // skip mhod header identifier
+        let mhodHeaderLength = UInt64(fileHandle.readData(ofLength: 4).parseLEUInt32()!)
+        let mhodTotalLength = UInt64(fileHandle.readData(ofLength: 4).parseLEUInt32()!)
+        let mhodType = UInt64(fileHandle.readData(ofLength: 4).parseLEUInt32()!)
+        try fileHandle.seek(toOffset: contentOffset + 28) // skip some fields
+        let mhodLength = UInt64(fileHandle.readData(ofLength: 4).parseLEUInt32()!)
+        try fileHandle.seek(toOffset: contentOffset + 40 ) // skip some fields
+        let stringData = fileHandle.readData(ofLength: Int(mhodLength))
 
+        print(mhodType, String(data: stringData, encoding: .utf16LittleEndian))
 
+        contentOffset += mhodTotalLength
+    }
 
-
-//if let fileURL = Bundle.module.url(forResource: "Resources/lyrics", withExtension: "txt") {
-//    let fileHandle = FileHandle(forReadingAtPath: fileURL.path)
-//
-//    if let fileHandle = fileHandle {
-//        var dataBuffer: Data
-//
-//        print("Offset = \(fileHandle.offsetInFile)")
-//        dataBuffer = fileHandle.readData(ofLength: 5)
-//        print(String(data: dataBuffer, encoding: .utf8)!)
-//
-//        fileHandle.seekToEndOfFile()
-//        print("Offset = \(fileHandle.offsetInFile)")
-//        dataBuffer = fileHandle.readData(ofLength: 5)
-//        print(String(data: dataBuffer, encoding: .utf8)!)
-//
-//        try! fileHandle.seek(toOffset: 30)
-//        print("Offset = \(fileHandle.offsetInFile)")
-//        dataBuffer = fileHandle.readData(ofLength: 5)
-//        print(String(data: dataBuffer, encoding: .utf8)!)
-//        fileHandle.closeFile()
-//    } else {
-//        print("No file")
-//    }
-//} else {
-//    print("Error at trying to get the lyrics")
-//}
+    offset += mhitTotalLength
+    print("-----------")
+}
