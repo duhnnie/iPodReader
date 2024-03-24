@@ -3,6 +3,7 @@ import Foundation
 struct Playcount {
     let index: Int
     let count: UInt64
+    let rating: UInt
     let timestamp: UInt64
 }
 
@@ -39,13 +40,16 @@ if pcNumberOfEntries > 0 {
         pcDataBuffer = pcFileHandle.readData(ofLength: 4)
 
         let playCount = UInt64(pcDataBuffer.parseLEUInt8()!)
+        try pcFileHandle.seek(toOffset: pcOffset + 12)
+        pcDataBuffer = pcFileHandle.readData(ofLength: 4)
+        let rating = UInt(pcDataBuffer.parseLEUInt32()!) / 20
 
-        if playCount > 0 {
-            playcountItems.append(Playcount(index: Int(i), count: playCount, timestamp: 0))
+//        if playCount > 0 {
+        playcountItems.append(Playcount(index: Int(i), count: playCount, rating: rating, timestamp: 0))
 //            print("\(i). \(playCount) - \(playcountItems.count)")
-        } else {
+//        } else {
 //            print("\(i). \(playCount) - \(playcountItems.count)")
-        }
+//        }
 
         pcOffset += pcSingleEntryLength
         try pcFileHandle.seek(toOffset: pcOffset)
@@ -103,11 +107,11 @@ offset += mhltHeaderSize
 try fileHandle.seek(toOffset: offset)
 
 for i in 0...(mhltCount - 1) {
-    if #available(macOS 10.15.4, *) {
-        print("mhit", try? fileHandle.offset())
-        let headerIdentifier = fileHandle.readData(ofLength: 4)
-        print(String(data: headerIdentifier, encoding: .utf8))
-    }
+//    if #available(macOS 10.15.4, *) {
+//        print("mhit", try? fileHandle.offset())
+//        let headerIdentifier = fileHandle.readData(ofLength: 4)
+//        print(String(data: headerIdentifier, encoding: .utf8))
+//    }
     try fileHandle.seek(toOffset: offset + 4) // skip header identifier
     let mhitHeaderSize = UInt64(fileHandle.readData(ofLength: 4).parseLEUInt32()!)
     let mhitTotalLength = UInt64(fileHandle.readData(ofLength: 4).parseLEUInt32()!)
@@ -117,8 +121,16 @@ for i in 0...(mhltCount - 1) {
     try fileHandle.seek(toOffset: offset + 80)
     let mhitPlayCount = UInt(fileHandle.readData(ofLength: 4).parseLEUInt32()!)
     let mhitPlayCount2 = UInt(fileHandle.readData(ofLength: 4).parseLEUInt32()!)
+    
+    let playcountItem = playcountItems[Int(i)]
+    
+    if (playcountItem.count == 0 && mhitRating == playcountItem.rating) {
+        try fileHandle.seek(toOffset: offset + mhitTotalLength)
+        offset += mhitTotalLength
+        continue
+    }
 
-    print("\(mhitNumberOfStrings) r:\(mhitRating) pc1:\(mhitPlayCount) pc2:\(mhitPlayCount2)")
+    print("\(mhitNumberOfStrings) r:\(mhitRating)|\(playcountItem.rating) pc1:\(mhitPlayCount) pc2:\(mhitPlayCount2)")
 
     var contentOffset = offset + mhitHeaderSize
     for j in 0...(mhitNumberOfStrings - 1) {
