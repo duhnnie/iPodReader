@@ -1,10 +1,61 @@
 import Foundation
 
+struct Playcount {
+    let index: Int
+    let count: UInt64
+    let timestamp: UInt64
+}
+
 print("Hello, world!")
 
-//guard var fileURL = try? FileManager.default.url(for: .documentDirectory, in: .userDomainMask, appropriateFor: nil, create: false) else {
-//    exit(EXIT_FAILURE)
-//}
+var pcFileURL = URL(fileURLWithPath: "/users/daniel/Documents", isDirectory: true)
+pcFileURL.appendPathComponent("iPodReaderProject", isDirectory: true)
+pcFileURL.appendPathComponent("Play Counts", isDirectory: false)
+
+guard let pcFileHandle = FileHandle(forReadingAtPath: pcFileURL.path) else {
+    print("can't read file at \(pcFileURL.path)")
+    exit(EXIT_FAILURE)
+}
+
+var pcDataBuffer: Data
+try pcFileHandle.seek(toOffset: 4) // skip header id
+pcDataBuffer = pcFileHandle.readData(ofLength: 4)
+let pcHeaderLength = UInt64(pcDataBuffer.parseLEUInt8()!)
+pcDataBuffer = pcFileHandle.readData(ofLength: 4)
+let pcSingleEntryLength = UInt64(pcDataBuffer.parseLEUInt8()!)
+pcDataBuffer = pcFileHandle.readData(ofLength: 4)
+let pcNumberOfEntries = UInt64(pcDataBuffer.parseLEUInt8()!)
+print(pcNumberOfEntries)
+
+var pcOffset = pcHeaderLength
+var playcountItems = [Playcount]()
+
+if pcNumberOfEntries > 0 {
+    try pcFileHandle.seek(toOffset: pcOffset)
+    var i = 0
+    
+    while pcOffset < pcFileHandle.seekToEndOfFile() {
+        try pcFileHandle.seek(toOffset: pcOffset)
+        pcDataBuffer = pcFileHandle.readData(ofLength: 4)
+
+        let playCount = UInt64(pcDataBuffer.parseLEUInt8()!)
+
+        if playCount > 0 {
+            playcountItems.append(Playcount(index: Int(i), count: playCount, timestamp: 0))
+//            print("\(i). \(playCount) - \(playcountItems.count)")
+        } else {
+//            print("\(i). \(playCount) - \(playcountItems.count)")
+        }
+
+        pcOffset += pcSingleEntryLength
+        try pcFileHandle.seek(toOffset: pcOffset)
+        i += 1
+    }
+}
+
+//exit(0)
+
+// -------------------
 
 var fileURL = URL(fileURLWithPath: "/users/daniel/Documents", isDirectory: true)
 
@@ -36,78 +87,6 @@ dataBuffer = fileHandle.readData(ofLength: 4)
 let endOfMHSD = offset + UInt64(dataBuffer.parseLEUInt32()!)
 print("end of mhsd", endOfMHSD)
 
-offset = endofMHSDHeader
-
-try fileHandle.seek(toOffset: offset)
-dataBuffer = fileHandle.readData(ofLength: 4)
-print(String(data: dataBuffer, encoding: .utf8)!) // mhla - album item
-
-dataBuffer = fileHandle.readData(ofLength: 4)
-offset += UInt64(dataBuffer.parseLEUInt8()!)
-print("End of header for mhla", offset)
-
-try fileHandle.seek(toOffset: offset)
-dataBuffer = fileHandle.readData(ofLength: 4)
-print(String(data: dataBuffer, encoding: .utf8)!) // mhia - album item
-
-dataBuffer = fileHandle.readData(ofLength: 4)
-let endOfHeader = offset + UInt64(dataBuffer.parseLEUInt8()!)
-print("End of header for mhia", endOfHeader)
-try fileHandle.seek(toOffset: offset + 12)
-dataBuffer = fileHandle.readData(ofLength: 4)
-print("number of strings in mhia", UInt(dataBuffer.parseLEUInt32()!))
-offset = endOfHeader
-
-try fileHandle.seek(toOffset: offset)
-dataBuffer = fileHandle.readData(ofLength: 4)
-print(String(data: dataBuffer, encoding: .utf8)!) // mhod - string holder
-
-try fileHandle.seek(toOffset: offset + 4)
-print("End of header for mhod", offset + UInt64(fileHandle.readData(ofLength: 4).parseLEUInt8()!))
-
-try fileHandle.seek(toOffset: offset + 8)
-var totalLength = UInt64(fileHandle.readData(ofLength: 4).parseLEUInt8()!)
-print("Size of mhod", totalLength)
-print("end of mhod", offset + totalLength)
-try fileHandle.seek(toOffset: offset + 28)
-var dataLength = UInt64(fileHandle.readData(ofLength: 4).parseLEUInt8()!)
-try fileHandle.seek(toOffset: offset + 40)
-var data = fileHandle.readData(ofLength: Int(dataLength))
-print(String(data: data, encoding: .utf16LittleEndian)!)
-offset += totalLength;
-
-// ---- mhod
-try fileHandle.seek(toOffset: offset)
-dataBuffer = fileHandle.readData(ofLength: 4)
-print(">", String(data: dataBuffer, encoding: .utf8)!) // mhod
-
-try fileHandle.seek(toOffset: offset + 8)
-totalLength = UInt64(fileHandle.readData(ofLength: 4).parseLEUInt8()!)
-try fileHandle.seek(toOffset: offset + 28)
-dataLength = UInt64(fileHandle.readData(ofLength: 4).parseLEUInt8()!)
-try fileHandle.seek(toOffset: offset + 40)
-data = fileHandle.readData(ofLength: Int(dataLength))
-print(String(data: data, encoding: .utf16LittleEndian)!)
-offset += totalLength;
-
-try fileHandle.seek(toOffset: offset)
-dataBuffer = fileHandle.readData(ofLength: 4)
-print(">", String(data: dataBuffer, encoding: .utf8)!) // mhod
-
-try fileHandle.seek(toOffset: offset + 8)
-totalLength = UInt64(fileHandle.readData(ofLength: 4).parseLEUInt8()!)
-try fileHandle.seek(toOffset: offset + 28)
-dataLength = UInt64(fileHandle.readData(ofLength: 4).parseLEUInt8()!)
-try fileHandle.seek(toOffset: offset + 40)
-data = fileHandle.readData(ofLength: Int(dataLength))
-print(String(data: data, encoding: .utf16LittleEndian)!)
-offset += totalLength;
-
-try fileHandle.seek(toOffset: offset)
-dataBuffer = fileHandle.readData(ofLength: 4)
-print(String(data: dataBuffer, encoding: .utf8)!)
-print("--------")
-
 // next list holder
 offset = endOfMHSD
 try fileHandle.seek(toOffset: offset + 4)
@@ -121,6 +100,7 @@ let mhltCount = UInt64(fileHandle.readData(ofLength: 4).parseLEUInt32()!)
 print("\(mhltCount) tracks")
 
 offset += mhltHeaderSize
+try fileHandle.seek(toOffset: offset)
 
 for i in 0...(mhltCount - 1) {
     if #available(macOS 10.15.4, *) {
@@ -132,11 +112,13 @@ for i in 0...(mhltCount - 1) {
     let mhitHeaderSize = UInt64(fileHandle.readData(ofLength: 4).parseLEUInt32()!)
     let mhitTotalLength = UInt64(fileHandle.readData(ofLength: 4).parseLEUInt32()!)
     let mhitNumberOfStrings = UInt64(fileHandle.readData(ofLength: 4).parseLEUInt32()!)
+    try fileHandle.seek(toOffset: offset + 31)
+    let mhitRating = UInt(fileHandle.readData(ofLength: 1).parseLEUInt8()!) / 20
     try fileHandle.seek(toOffset: offset + 80)
     let mhitPlayCount = UInt(fileHandle.readData(ofLength: 4).parseLEUInt32()!)
     let mhitPlayCount2 = UInt(fileHandle.readData(ofLength: 4).parseLEUInt32()!)
 
-    print("\(mhitNumberOfStrings) \(mhitPlayCount) \(mhitPlayCount2)")
+    print("\(mhitNumberOfStrings) r:\(mhitRating) pc1:\(mhitPlayCount) pc2:\(mhitPlayCount2)")
 
     var contentOffset = offset + mhitHeaderSize
     for j in 0...(mhitNumberOfStrings - 1) {
