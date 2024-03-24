@@ -123,6 +123,11 @@ print("\(mhltCount) tracks")
 offset += mhltHeaderSize
 
 for i in 0...(mhltCount - 1) {
+    if #available(macOS 10.15.4, *) {
+        print("mhit", try? fileHandle.offset())
+        let headerIdentifier = fileHandle.readData(ofLength: 4)
+        print(String(data: headerIdentifier, encoding: .utf8))
+    }
     try fileHandle.seek(toOffset: offset + 4) // skip header identifier
     let mhitHeaderSize = UInt64(fileHandle.readData(ofLength: 4).parseLEUInt32()!)
     let mhitTotalLength = UInt64(fileHandle.readData(ofLength: 4).parseLEUInt32()!)
@@ -135,16 +140,40 @@ for i in 0...(mhltCount - 1) {
 
     var contentOffset = offset + mhitHeaderSize
     for j in 0...(mhitNumberOfStrings - 1) {
+        var mhodOffset: UInt64? = nil
+        
+        if #available(macOS 10.15.4, *) {
+            mhodOffset = try? fileHandle.offset()
+        }
+        
         try fileHandle.seek(toOffset: contentOffset + 4) // skip mhod header identifier
         let mhodHeaderLength = UInt64(fileHandle.readData(ofLength: 4).parseLEUInt32()!)
         let mhodTotalLength = UInt64(fileHandle.readData(ofLength: 4).parseLEUInt32()!)
         let mhodType = UInt64(fileHandle.readData(ofLength: 4).parseLEUInt32()!)
-        try fileHandle.seek(toOffset: contentOffset + 28) // skip some fields
-        let mhodLength = UInt64(fileHandle.readData(ofLength: 4).parseLEUInt32()!)
+        
+        var stringOffset: UInt64 = 0
+        var mhodLength: UInt64 = 0
+        
+        if [15, 16].contains(mhodType) {
+            mhodLength = mhodTotalLength - mhodHeaderLength - 12
+            stringOffset = 24
+        } else if mhodType == 17 {
+            mhodLength = mhodTotalLength - mhodHeaderLength
+            stringOffset = 36
+        } else {
+            try fileHandle.seek(toOffset: contentOffset + 28) // skip some fields
+            mhodLength = UInt64(fileHandle.readData(ofLength: 4).parseLEUInt32()!)
+            stringOffset = 40
+        }
+        
         try fileHandle.seek(toOffset: contentOffset + 40 ) // skip some fields
         let stringData = fileHandle.readData(ofLength: Int(mhodLength))
 
-        print(mhodType, String(data: stringData, encoding: .utf16LittleEndian))
+        if [15, 16].contains(mhodType) {
+            print(mhodType, stringOffset as UInt64?, String(data: stringData, encoding: .utf8))
+        } else {
+            print(mhodType, stringOffset as UInt64?, String(data: stringData, encoding: .utf16LittleEndian))
+        }
 
         contentOffset += mhodTotalLength
     }
