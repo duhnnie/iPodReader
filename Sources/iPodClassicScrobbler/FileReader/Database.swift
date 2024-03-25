@@ -1,11 +1,12 @@
 import Foundation
 
-internal struct Database {
+final class Database: Element {
     
-    private enum Chunk: ChunkProtocol {
-        case headerID
-        case headerLength
-        case totalLength
+    override internal class var NAME: String {
+        return "mhbd"
+    }
+    
+    internal enum Chunk: ChunkProtocol {
         case versionNumber
         case childrenCount
         case id
@@ -13,12 +14,6 @@ internal struct Database {
         
         public var offset: UInt64 {
             switch(self) {
-            case .headerID:
-                return 0
-            case .headerLength:
-                return 4
-            case .totalLength:
-                return 8
             case .versionNumber:
                 return 16
             case .childrenCount:
@@ -32,9 +27,7 @@ internal struct Database {
         
         public var size: Int {
             switch(self) {
-            case .headerID,
-                .headerLength,
-                .totalLength,
+            case
                 .versionNumber,
                 .childrenCount:
                 return 4
@@ -46,41 +39,57 @@ internal struct Database {
         }
     }
     
-    private static let NAME = "mhbd"
-    private let fileURL: URL
-    private let headerLength: UInt64
-    private let totalLength: UInt64
-    
     public let version: UInt
     public let childrenCount: UInt
     public let id: UInt64
     public let language: String
     
-    init(fileURL: URL) throws {
+    public init(fileURL: URL) throws {
         let fileHandle = try FileHandle(forReadingFrom: fileURL)
         
         defer {
             try? fileHandle.close()
         }
         
-        let headerID = try String(data: Utils.readChunk(fileHandle: fileHandle, chunk: Chunk.headerID), encoding: .utf8)
-        
-        guard headerID == Self.NAME else {
-            throw ReadError.NoElementMatchError(expected: Self.NAME)
+        guard
+            let versionData = try? Utils.readChunk(fileHandle: fileHandle, chunk: Chunk.versionNumber),
+            let version32 = versionData.parseLEUInt32()
+        else {
+            throw ReadError.ParseHeaderFieldError(field: "version")
         }
         
-        headerLength = UInt64(try Utils.readChunk(fileHandle: fileHandle, chunk: Chunk.headerLength).parseLEUInt32()!)
-        totalLength = UInt64(try Utils.readChunk(fileHandle: fileHandle, chunk: Chunk.totalLength).parseLEUInt32()!)
-        version = UInt(try Utils.readChunk(fileHandle: fileHandle, chunk: Chunk.versionNumber).parseLEUInt32()!)
-        childrenCount = UInt(try Utils.readChunk(fileHandle: fileHandle, chunk: Chunk.childrenCount).parseLEUInt32()!)
-        id = UInt64(try Utils.readChunk(fileHandle: fileHandle, chunk: Chunk.id).parseLEUInt64()!)
-        language = try String(data: Utils.readChunk(fileHandle: fileHandle, chunk: Chunk.language), encoding: .utf8)!
+        self.version = UInt(version32)
         
-        self.fileURL = fileURL
+        guard
+            let childrenCountData = try? Utils.readChunk(fileHandle: fileHandle, chunk: Chunk.childrenCount),
+            let childrenCountInt32 = childrenCountData.parseLEUInt32()
+        else {
+            throw ReadError.ParseHeaderFieldError(field: "childrenCountData")
+        }
         
-        try fileHandle.close()
+        self.childrenCount = UInt(childrenCountInt32)
+        
+        guard
+            let idData = try? Utils.readChunk(fileHandle: fileHandle, chunk: Chunk.id),
+            let idInt64 = idData.parseLEUInt64()
+        else {
+            throw ReadError.ParseHeaderFieldError(field: "id")
+        }
+        
+        self.id = idInt64
+        
+        guard
+            let languageData = try? Utils.readChunk(fileHandle: fileHandle, chunk: Chunk.language),
+            let language = String(data: languageData, encoding: .utf8)
+        else {
+            throw ReadError.ParseHeaderFieldError(field: "language")
+        }
+        
+        self.language = language
+        
+        try super.init(fileURL: fileURL, offset: 0)
     }
- 
+    
     private func getChildren() throws -> [DataSet] {
         var datasets = [DataSet]()
         var offset = self.headerLength
@@ -89,7 +98,7 @@ internal struct Database {
             let dataSet = try DataSet(fileURL: self.fileURL, offset: offset)
             
             datasets.append(dataSet)
-            offset += dataSet.totalLength
+            offset += dataSet.totalLengthOrChildrenCount
         }
         
         return datasets

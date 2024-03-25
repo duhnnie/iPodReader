@@ -1,63 +1,23 @@
 import Foundation
 
-internal struct TrackList: ListProtocol {
+class TrackList: Element {
     
-    internal static let NAME = "mhlt"
-    
-    private enum Chunk: ChunkProtocol {
-        case headerID
-        case headerLength
-        case trackCount
-        
-        public var offset: UInt64 {
-            switch(self) {
-            case .headerID:
-                return 0
-            case .headerLength:
-                return 4
-            case .trackCount:
-                return 8
-            }
-        }
-        
-        public var size: Int {
-            return 4
-        }
+    override internal class var NAME: String {
+        return "mhlt"
     }
     
-    private let headerLength: UInt64
-    public let itemsCount: Int
-    
-    init(fileURL: URL, offset: UInt64) throws {
-        let fileHandle = try FileHandle(forReadingFrom: fileURL)
+    public func getItems() throws -> [TrackItem] {
+        var items = [TrackItem]()
+        var offset = self.offset + self.headerLength
         
-        try Utils.checkElementId(fileHandle: fileHandle, chunk: Chunk.headerID, id: Self.NAME, offset: offset)
-        
-        guard
-            let headerLengthData = try? Utils.readChunk(
-                fileHandle: fileHandle,
-                chunk: Chunk.headerLength,
-                offset: offset
-            ),
-            let headerLengthInt32 = headerLengthData.parseLEUInt32()
-        else {
-            throw ReadError.ParseHeaderFieldError(field: String(describing: Chunk.headerLength))
+        for _ in 0...self.totalLengthOrChildrenCount - 1 {
+            let item = try TrackItem(fileURL: self.fileURL, offset: offset)
+            
+            items.append(item)
+            offset += item.totalLengthOrChildrenCount
         }
         
-        self.headerLength = UInt64(headerLengthInt32)
-        
-        guard
-            let trackCountData = try? Utils.readChunk(
-                fileHandle: fileHandle,
-                chunk: Chunk.trackCount,
-                offset: offset
-            ),
-            let trackCountInt32 = trackCountData.parseLEUInt32()
-        else {
-            throw ReadError.ParseHeaderFieldError(field: String(describing: Chunk.trackCount))
-        }
-        
-        self.itemsCount = Int(trackCountInt32)
+        return items
     }
     
 }

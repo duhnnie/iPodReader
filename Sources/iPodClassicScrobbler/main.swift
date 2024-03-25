@@ -67,7 +67,7 @@ fileURL.appendPathComponent("iPodReaderProject", isDirectory: true)
 fileURL.appendPathComponent("iTunesDB", isDirectory: false)
 
 //var mhdb = try Database(fileURL: fileURL)
-var mhdb = try Database2(fileURL: fileURL)
+var mhdb = try Database(fileURL: fileURL)
 var trackDataSet = try mhdb.getTrackDataSet()
 var trackList = try trackDataSet!.getList()
 var items = try trackList.getItems()
