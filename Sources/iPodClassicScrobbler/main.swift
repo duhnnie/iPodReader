@@ -66,6 +66,16 @@ var fileURL = URL(fileURLWithPath: "/users/daniel/Documents", isDirectory: true)
 fileURL.appendPathComponent("iPodReaderProject", isDirectory: true)
 fileURL.appendPathComponent("iTunesDB", isDirectory: false)
 
+//var mhdb = try Database(fileURL: fileURL)
+var mhdb = try Database2(fileURL: fileURL)
+var trackDataSet = try mhdb.getTrackDataSet()
+var trackList = try trackDataSet!.getList()
+var items = try trackList.getItems()
+//print(try mhdb.getTrackDataSet())
+print(items.count)
+
+exit(0)
+
 guard let fileHandle = FileHandle(forReadingAtPath: fileURL.path) else {
     print("can't read file at \(fileURL.path)")
     exit(EXIT_FAILURE)
