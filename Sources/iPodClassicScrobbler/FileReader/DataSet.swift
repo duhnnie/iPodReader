@@ -40,7 +40,7 @@ internal class DataSet: Element {
         }
         
         guard
-            let typeData = try? Utils.readChunk(fileHandle: fileHandle, chunk: Chunk.type, offset: offset),
+            let typeData = try? Utils.readChunk(fileHandle: fileHandle, chunk: Chunk.type, parentOffset: offset),
             let typeInt32 = typeData.parseLEUInt32(),
             let type = DataSetType(rawValue: Int(typeInt32))
         else {

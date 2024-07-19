@@ -7,8 +7,8 @@ internal struct Utils {
         return fileHandle.readData(ofLength: size)
     }
     
-    public static func readChunk(fileHandle: FileHandle, chunk: ChunkProtocol, offset: UInt64 = 0) throws -> Data {
-        return try Self.readChunk(fileHandle: fileHandle, offset: offset + chunk.offset, size: chunk.size)
+    public static func readChunk(fileHandle: FileHandle, chunk: ChunkProtocol, parentOffset: UInt64 = 0) throws -> Data {
+        return try Self.readChunk(fileHandle: fileHandle, offset: parentOffset + chunk.offset, size: chunk.size)
     }
     
     public static func checkElementId(fileHandle: FileHandle, chunk: ChunkProtocol, id: String, offset:UInt64) throws {

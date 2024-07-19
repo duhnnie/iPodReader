@@ -45,7 +45,7 @@ internal class Element {
             let headerLengthData = try? Utils.readChunk(
                 fileHandle: fileHandle,
                 chunk: Element.Chunk.headerLength,
-                offset: offset
+                parentOffset: offset
             ),
             let headerLengthInt32 = headerLengthData.parseLEUInt32()
         else {
@@ -58,7 +58,7 @@ internal class Element {
             let totalLength = try? Utils.readChunk(
                 fileHandle: fileHandle,
                 chunk: Element.Chunk.totalLengthOrChildrenCount,
-                offset: offset
+                parentOffset: offset
             ),
             let totalLength32 = totalLength.parseLEUInt32()
         else {

@@ -74,6 +74,24 @@ var items = try trackList.getItems()
 //print(try mhdb.getTrackDataSet())
 print(items.count)
 
+let formatter = DateComponentsFormatter()
+formatter.allowedUnits = [.hour, .minute, .second]
+formatter.unitsStyle = .full
+
+for item in items {
+    if item.rating < 5 {
+        continue
+    }
+    
+    
+    let strings = try item.getItems()
+    let artist = strings.first { str in str.type == DataObject.DataObjectType.artist }
+    let title = strings.first { str in str.type == DataObject.DataObjectType.title }
+    let duration = formatter.string(from: TimeInterval(item.length / 1000))
+    
+    print("\(artist!.value) - \"\(title!.value)\" (\(duration))")
+}
+
 exit(0)
 
 guard let fileHandle = FileHandle(forReadingAtPath: fileURL.path) else {
