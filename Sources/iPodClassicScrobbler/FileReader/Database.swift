@@ -1,6 +1,6 @@
 import Foundation
 
-final class Database: Element {
+final class Database: DatabaseElement {
     
     override internal class var NAME: String {
         return "mhbd"

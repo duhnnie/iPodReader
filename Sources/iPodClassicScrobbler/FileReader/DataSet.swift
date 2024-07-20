@@ -1,6 +1,6 @@
 import Foundation
 
-internal class DataSet: Element {
+internal class DataSet: DatabaseElement {
     
     override internal class var NAME: String {
         return "mhsd"

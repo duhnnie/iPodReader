@@ -1,6 +1,6 @@
 import Foundation
 
-class DataObject: Element {
+class DataObject: DatabaseElement {
     
     override internal class var NAME: String {
         return "mhod"

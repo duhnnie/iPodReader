@@ -9,7 +9,6 @@ internal class Element {
     internal enum Chunk: ChunkProtocol {
         case headerID
         case headerLength
-        case totalLengthOrChildrenCount
         
         public var offset: UInt64 {
             switch(self) {
@@ -17,22 +16,20 @@ internal class Element {
                 return 0
             case .headerLength:
                 return 4
-            case .totalLengthOrChildrenCount:
-                return 8
             }
         }
         
         public var size: Int {
             return 4
         }
+        
     }
     
     public let offset: UInt64
     public let fileURL: URL
     public let headerLength: UInt64
-    public let totalLengthOrChildrenCount: UInt64
     
-    init(fileURL: URL, offset: UInt64) throws {
+    internal init(fileURL: URL, offset: UInt64) throws {
         let fileHandle = try FileHandle(forReadingFrom: fileURL)
         
         defer {
@@ -53,19 +50,6 @@ internal class Element {
         }
         
         self.headerLength = UInt64(headerLengthInt32)
-        
-        guard
-            let totalLength = try? Utils.readChunk(
-                fileHandle: fileHandle,
-                chunk: Element.Chunk.totalLengthOrChildrenCount,
-                parentOffset: offset
-            ),
-            let totalLength32 = totalLength.parseLEUInt32()
-        else {
-            throw ReadError.ParseHeaderFieldError(field: String(describing: Chunk.totalLengthOrChildrenCount))
-        }
-        
-        self.totalLengthOrChildrenCount = UInt64(totalLength32)
         self.fileURL = fileURL
         self.offset = offset
     }
