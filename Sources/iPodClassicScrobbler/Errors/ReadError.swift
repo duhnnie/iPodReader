@@ -4,6 +4,7 @@ internal enum ReadError: Error {
     case NoElementMatchError(expected: String)
     case ParseHeaderFieldError(field: String)
     case EnumParseError(type: String)
+    case ElementNotFoundAtIndex(index: UInt64)
 }
 
 extension ReadError: LocalizedError {
@@ -21,6 +22,10 @@ extension ReadError: LocalizedError {
             let format = NSLocalizedString("Can't parse header field \"%@\"", comment: "")
             
             return String(format: format, field)
+        case .ElementNotFoundAtIndex(index: let index):
+            let format = NSLocalizedString("No element at index \"%@\".", comment: "")
+            
+            return String(format: format, index)
         }
     }
 }

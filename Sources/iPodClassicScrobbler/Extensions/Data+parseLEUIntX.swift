@@ -1,8 +1,8 @@
 // Based on post on https://developer.apple.com/forums/thread/652469
 import Foundation
 
-extension Data {
-	private func parseLEUIntX<Result>(_: Result.Type) -> Result? where Result: UnsignedInteger {
+internal extension Data {
+  func parseLEUIntX<Result>(_: Result.Type) -> Result? where Result: UnsignedInteger {
     let expected = MemoryLayout<Result>.size
     guard self.count >= expected else { return nil }
     // defer { self = self.dropFirst(expected) }

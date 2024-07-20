@@ -24,4 +24,15 @@ internal struct Utils {
         }
     }
     
+    public static func readAndParseUIntChunk<T: UnsignedInteger>(fileHandle: FileHandle, chunk: ChunkProtocol, type: T.Type, baseOffset: UInt64 = 0) throws -> T {
+        guard
+            let data = try? readChunk(fileHandle: fileHandle, chunk: chunk, parentOffset: baseOffset),
+            let parsed = data.parseLEUIntX(type)
+        else {
+            throw ReadError.ParseHeaderFieldError(field: "\(chunk)")
+        }
+        
+        return parsed
+    }
+    
 }
