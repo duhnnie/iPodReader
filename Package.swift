@@ -23,6 +23,10 @@ let package = Package(
             ]),
         .testTarget(
             name: "iPodClassicScrobblerTests",
-            dependencies: ["iPodClassicScrobbler"]),
+            dependencies: ["iPodClassicScrobbler"],
+            resources: [
+                .copy("Resources")
+            ]
+        ),
     ]
 )
