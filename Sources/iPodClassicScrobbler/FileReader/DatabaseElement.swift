@@ -18,6 +18,7 @@ internal class DatabaseElement: Element {
         }
     }
     
+    // NOTE: maybe it should be UInt32
     public let totalLengthOrChildrenCount: UInt64
     
     internal override init(fileURL: URL, offset: UInt64) throws {
@@ -27,18 +28,13 @@ internal class DatabaseElement: Element {
             try? fileHandle.close()
         }
         
-        guard
-            let totalLength = try? Utils.readChunk(
-                fileHandle: fileHandle,
-                chunk: DatabaseElement.Chunk.totalLengthOrChildrenCount,
-                parentOffset: offset
-            ),
-            let totalLength32 = totalLength.parseLEUInt32()
-        else {
-            throw ReadError.ParseHeaderFieldError(field: String(describing: Chunk.totalLengthOrChildrenCount))
-        }
+        self.totalLengthOrChildrenCount = try UInt64(Utils.readAndParseUIntChunk(
+            fileHandle: fileHandle,
+            chunk: Chunk.totalLengthOrChildrenCount,
+            type: UInt32.self,
+            baseOffset: offset
+        ))
         
-        self.totalLengthOrChildrenCount = UInt64(totalLength32)
         try super.init(fileURL: fileURL, offset: offset)
     }
     

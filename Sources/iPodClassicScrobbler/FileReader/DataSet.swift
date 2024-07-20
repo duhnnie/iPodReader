@@ -39,9 +39,14 @@ internal class DataSet: DatabaseElement {
             try? fileHandle.close()
         }
         
+        let typeInt32 = try Utils.readAndParseUIntChunk(
+            fileHandle: fileHandle,
+            chunk: Chunk.type,
+            type: UInt32.self,
+            baseOffset: offset
+        )
+        
         guard
-            let typeData = try? Utils.readChunk(fileHandle: fileHandle, chunk: Chunk.type, parentOffset: offset),
-            let typeInt32 = typeData.parseLEUInt32(),
             let type = DataSetType(rawValue: Int(typeInt32))
         else {
             throw ReadError.EnumParseError(type: String(describing: DataSetType.self))

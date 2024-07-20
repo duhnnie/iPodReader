@@ -71,54 +71,26 @@ class DataObject: DatabaseElement {
     
     override init(fileURL: URL, offset: UInt64) throws {
         let fileHandle = try FileHandle(forReadingFrom: fileURL)
-//        var theValue: String = ""
         
         defer {
             try? fileHandle.close()
         }
         
+        let typeInt32 = try Utils.readAndParseUIntChunk(
+            fileHandle: fileHandle,
+            chunk: Chunk.type,
+            type: UInt32.self,
+            baseOffset: offset
+        )
+        
         guard
-            let typeData = try? Utils.readChunk(fileHandle: fileHandle, chunk: Chunk.type, parentOffset: offset),
-            let typeInt32 = typeData.parseLEUInt32(),
             let type = try? DataObjectType(rawValue: Int(typeInt32)) ?? DataObjectType.unknown1
         else {
             throw ReadError.ParseHeaderFieldError(field: "type")
         }
         
         self.type = type
-        
-//        if self.dataObjectType.rawValue < 15 {
-//            guard
-//                let lengthData = try? Utils.readChunk(fileHandle: fileHandle, chunk: Chunk.length, offset: offset),
-//                let length = lengthData.parseLEUInt32(),
-//                let valueData = try? Utils.readChunk(fileHandle: fileHandle, offset: offset + 40, size: Int(length)),
-//                let value = String(data: valueData, encoding: .utf8)
-//            else {
-//                throw ReadError.ParseHeaderFieldError(field: "value")
-//            }
-//
-//            theValue = value
-//        } else if [15, 16].contains(self.dataObjectType.rawValue) {
-//            guard
-//                let valueData = try? Utils.readChunk(fileHandle: fileHandle, offset: offset + 24, size: Int(self.totalLengthOrChildrenCount - self.headerLength)),
-//                let value = String(data: valueData, encoding: .utf8)
-//            else {
-//                throw ReadError.ParseHeaderFieldError(field: "value")
-//            }
-//
-//            theValue = value
-//        } else if self.dataObjectType.rawValue == 17 {
-//            guard
-//                let valueData = try? Utils.readChunk(fileHandle: fileHandle, offset: offset + 24, size: Int(self.totalLengthOrChildrenCount - self.headerLength - 12)),
-//                let value = String(data: valueData, encoding: .utf8)
-//            else {
-//                throw ReadError.ParseHeaderFieldError(field: "value")
-//            }
-//
-//            theValue = value
-//        }
-        
-        self.value = "" // self.value = theValue
+        self.value = ""
         try super.init(fileURL: fileURL, offset: offset)
         try self.initValue(fileHandle)
     }
@@ -126,7 +98,7 @@ class DataObject: DatabaseElement {
     private func initValue(_ fileHandle: FileHandle) throws {
         if self.type.rawValue < 15 {
             guard
-                let lengthData = try? Utils.readChunk(fileHandle: fileHandle, chunk: Chunk.length, parentOffset: offset),
+                let lengthData = try? Utils.readChunk(fileHandle: fileHandle, chunk: Chunk.length, baseOffset: offset),
                 let length = lengthData.parseLEUInt32(),
                 let valueData = try? Utils.readChunk(fileHandle: fileHandle, offset: offset + 40, size: Int(length)),
                 let value = String(data: valueData, encoding: .utf16LittleEndian)

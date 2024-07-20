@@ -38,16 +38,12 @@ internal class Element {
         
         try Utils.checkElementId(fileHandle: fileHandle, chunk: Element.Chunk.headerID, id: Self.NAME, offset: offset)
         
-        guard
-            let headerLengthData = try? Utils.readChunk(
-                fileHandle: fileHandle,
-                chunk: Element.Chunk.headerLength,
-                parentOffset: offset
-            ),
-            let headerLengthInt32 = headerLengthData.parseLEUInt32()
-        else {
-            throw ReadError.ParseHeaderFieldError(field: String(describing: Chunk.headerLength))
-        }
+        let headerLengthInt32 = try Utils.readAndParseUIntChunk(
+            fileHandle: fileHandle,
+            chunk: Chunk.headerLength,
+            type: UInt32.self,
+            baseOffset: offset
+        )
         
         self.headerLength = UInt64(headerLengthInt32)
         self.fileURL = fileURL

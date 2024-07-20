@@ -39,8 +39,8 @@ final class Database: DatabaseElement {
         }
     }
     
-    public let version: UInt
-    public let childrenCount: UInt
+    public let version: UInt32
+    public let childrenCount: UInt32
     public let id: UInt64
     public let language: String
     
@@ -51,41 +51,29 @@ final class Database: DatabaseElement {
             try? fileHandle.close()
         }
         
-        guard
-            let versionData = try? Utils.readChunk(fileHandle: fileHandle, chunk: Chunk.versionNumber),
-            let version32 = versionData.parseLEUInt32()
-        else {
-            throw ReadError.ParseHeaderFieldError(field: "version")
-        }
+        version = try Utils.readAndParseUIntChunk(
+            fileHandle: fileHandle,
+            chunk: Chunk.versionNumber,
+            type: UInt32.self
+        )
         
-        self.version = UInt(version32)
+        childrenCount = try Utils.readAndParseUIntChunk(
+            fileHandle: fileHandle,
+            chunk: Chunk.childrenCount,
+            type: UInt32.self
+        )
         
-        guard
-            let childrenCountData = try? Utils.readChunk(fileHandle: fileHandle, chunk: Chunk.childrenCount),
-            let childrenCountInt32 = childrenCountData.parseLEUInt32()
-        else {
-            throw ReadError.ParseHeaderFieldError(field: "childrenCountData")
-        }
+        id = try Utils.readAndParseUIntChunk(
+            fileHandle: fileHandle,
+            chunk: Chunk.id,
+            type: UInt64.self
+        )
         
-        self.childrenCount = UInt(childrenCountInt32)
-        
-        guard
-            let idData = try? Utils.readChunk(fileHandle: fileHandle, chunk: Chunk.id),
-            let idInt64 = idData.parseLEUInt64()
-        else {
-            throw ReadError.ParseHeaderFieldError(field: "id")
-        }
-        
-        self.id = idInt64
-        
-        guard
-            let languageData = try? Utils.readChunk(fileHandle: fileHandle, chunk: Chunk.language),
-            let language = String(data: languageData, encoding: .utf8)
-        else {
-            throw ReadError.ParseHeaderFieldError(field: "language")
-        }
-        
-        self.language = language
+        language = try Utils.readAndParseToString(
+            fileHandle: fileHandle,
+            chunk: Chunk.language,
+            encoding: .utf8
+        )
         
         try super.init(fileURL: fileURL, offset: 0)
     }

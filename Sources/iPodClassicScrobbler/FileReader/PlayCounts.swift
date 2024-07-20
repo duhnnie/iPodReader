@@ -36,22 +36,18 @@ final class PlayCounts: DatabaseElement {
             try? fileHandle.close()
         }
         
-        guard
-            let singleEntryLengthData = try? Utils.readChunk(fileHandle: fileHandle, chunk: Chunk.singleEntryLength),
-            let singleEntryLength = singleEntryLengthData.parseLEUInt32()
-        else {
-            throw ReadError.ParseHeaderFieldError(field: "single entry length")
-        }
+        self.singleEntryLength = try Utils.readAndParseUIntChunk(
+            fileHandle: fileHandle,
+            chunk: Chunk.singleEntryLength,
+            type: UInt32.self
+        )
         
-        guard
-            let numberOfEntriesData = try? Utils.readChunk(fileHandle: fileHandle, chunk: Chunk.numberOfEntries),
-            let numberOfEntries = numberOfEntriesData.parseLEUInt32()
-        else {
-            throw ReadError.ParseHeaderFieldError(field: "number of entries")
-        }
+        self.numberOfEntries = try Utils.readAndParseUIntChunk(
+            fileHandle: fileHandle,
+            chunk: Chunk.numberOfEntries,
+            type: UInt32.self
+        )
         
-        self.singleEntryLength = singleEntryLength
-        self.numberOfEntries = numberOfEntries
         try super.init(fileURL: fileURL, offset: offset)
     }
     

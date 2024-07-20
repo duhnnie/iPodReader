@@ -88,96 +88,69 @@ class TrackItem: DatabaseElement {
             try? fileHandle.close()
         }
         
-        // Rating:
-        guard
-            let ratingData = try? Utils.readChunk(fileHandle: fileHandle, chunk: Chunk.rating, parentOffset: offset),
-            let ratingData8 = ratingData.parseLEUInt8()
-        else {
-            throw ReadError.ParseHeaderFieldError(field: "rating")
-        }
+        rating = try Utils.readAndParseUIntChunk(
+            fileHandle: fileHandle,
+            chunk: Chunk.rating,
+            type: UInt8.self,
+            baseOffset: offset
+        )
         
-        self.rating = ratingData8 / 20
+        length = try Utils.readAndParseUIntChunk(
+            fileHandle: fileHandle,
+            chunk: Chunk.length,
+            type: UInt32.self,
+            baseOffset: offset
+        )
         
-        // Length:
-        guard
-            let lengthData = try? Utils.readChunk(fileHandle: fileHandle, chunk: Chunk.length, parentOffset: offset),
-            let lengthData32 = lengthData.parseLEUInt32()
-        else {
-            throw ReadError.ParseHeaderFieldError(field: "length")
-        }
+        trackNumber = try Utils.readAndParseUIntChunk(
+            fileHandle: fileHandle,
+            chunk: Chunk.trackNumber,
+            type: UInt32.self,
+            baseOffset: offset
+        )
         
-        self.length = lengthData32
+        totalTracks = try Utils.readAndParseUIntChunk(
+            fileHandle: fileHandle,
+            chunk: Chunk.totalTracks,
+            type: UInt32.self,
+            baseOffset: offset
+        )
         
-        // Track Number
-        guard
-            let trackNumberData = try? Utils.readChunk(fileHandle: fileHandle, chunk: Chunk.trackNumber, parentOffset: offset),
-            let trackNumber32 = trackNumberData.parseLEUInt32()
-        else {
-            throw ReadError.ParseHeaderFieldError(field: "track number")
-        }
+        year = try Utils.readAndParseUIntChunk(
+            fileHandle: fileHandle,
+            chunk: Chunk.year,
+            type: UInt32.self,
+            baseOffset: offset
+        )
         
-        self.trackNumber = trackNumber32
+        discNumber = try Utils.readAndParseUIntChunk(
+            fileHandle: fileHandle,
+            chunk: Chunk.discNumber,
+            type: UInt32.self,
+            baseOffset: offset
+        )
         
-        // Total tracks
-        guard
-            let totalTracksData = try? Utils.readChunk(fileHandle: fileHandle, chunk: Chunk.totalTracks, parentOffset: offset),
-            let totalTracks32 = totalTracksData.parseLEUInt32()
-        else {
-            throw ReadError.ParseHeaderFieldError(field: "total tracks")
-        }
+        totalDiscs = try Utils.readAndParseUIntChunk(
+            fileHandle: fileHandle,
+            chunk: Chunk.totalDiscs,
+            type: UInt32.self,
+            baseOffset: offset
+        )
         
-        self.totalTracks = totalTracks32
+        let mediaTypeValue = try Utils.readAndParseUIntChunk(fileHandle: fileHandle, chunk: Chunk.mediaType, type: UInt32.self, baseOffset: offset)
         
-        // Year
-        guard
-            let yearData = try? Utils.readChunk(fileHandle: fileHandle, chunk: Chunk.year, parentOffset: offset),
-            let year32 = yearData.parseLEUInt32()
-        else {
-            throw ReadError.ParseHeaderFieldError(field: "year")
-        }
-        
-        self.year = year32
-        
-        // Disc number
-        guard
-            let discNumberData = try? Utils.readChunk(fileHandle: fileHandle, chunk: Chunk.discNumber, parentOffset: offset),
-            let discNumber = discNumberData.parseLEUInt32()
-        else {
-            throw ReadError.ParseHeaderFieldError(field: "disc number")
-        }
-        
-        self.discNumber = discNumber
-        
-        // Total discs
-        guard
-            let totalDiscsData = try? Utils.readChunk(fileHandle: fileHandle, chunk: Chunk.totalDiscs, parentOffset: offset),
-            let totalDiscs = totalDiscsData.parseLEUInt32()
-        else {
-            throw ReadError.ParseHeaderFieldError(field: "total discs")
-        }
-        
-        self.totalDiscs = totalDiscs
-        
-        // Media type
-        guard
-            let mediaTypeData = try? Utils.readChunk(fileHandle: fileHandle, chunk: Chunk.mediaType, parentOffset: offset),
-            let mediaTypeValue = mediaTypeData.parseLEUInt32(),
-            let mediaType = MediaType(rawValue: Int(mediaTypeValue))
-        else {
+        guard let mediaType = MediaType(rawValue: Int(mediaTypeValue)) else {
             throw ReadError.ParseHeaderFieldError(field: "media type")
         }
         
         self.mediaType = mediaType
         
-        // Items count / strings count
-        guard
-            let itemsCountData = try? Utils.readChunk(fileHandle: fileHandle, chunk: Chunk.stringsCount, parentOffset: offset),
-            let itemsCount = itemsCountData.parseLEUInt32()
-        else {
-            throw ReadError.ParseHeaderFieldError(field: "media type")
-        }
-        
-        self.itemsCount = itemsCount
+        itemsCount = try Utils.readAndParseUIntChunk(
+            fileHandle: fileHandle,
+            chunk: Chunk.stringsCount,
+            type: UInt32.self,
+            baseOffset: offset
+        )
         
         try super.init(fileURL: fileURL, offset: offset)
     }
