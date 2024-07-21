@@ -1,6 +1,6 @@
 import Foundation
 
-final class PlayCounts: DatabaseElement {
+final class PlayCounts: ITunesDBElement {
     
     typealias TrackPlayCount = (track: TrackItem, playcount: PlayCountEntry)
         
@@ -65,7 +65,7 @@ final class PlayCounts: DatabaseElement {
         return entries
     }
     
-    public func getPlayedTracks(database: Database) throws -> [TrackPlayCount] {
+    public func getPlayedTracks(database: ITunesDB) throws -> [TrackPlayCount] {
         guard
             let trackDataSet = try database.getTrackDataSet()
         else {

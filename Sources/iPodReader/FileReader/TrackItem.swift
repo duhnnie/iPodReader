@@ -1,6 +1,6 @@
 import Foundation
 
-class TrackItem: DatabaseElement {
+class TrackItem: ITunesDBElement {
     
     override internal class var NAME: String {
         return "mhit"

@@ -1,6 +1,6 @@
 import Foundation
 
-internal class DatabaseElement: Element {
+internal class ITunesDBElement: Element {
     
     override internal class var NAME: String {
         return "databaseElement"

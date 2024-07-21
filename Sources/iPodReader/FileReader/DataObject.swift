@@ -1,6 +1,6 @@
 import Foundation
 
-class DataObject: DatabaseElement {
+class DataObject: ITunesDBElement {
     
     override internal class var NAME: String {
         return "mhod"

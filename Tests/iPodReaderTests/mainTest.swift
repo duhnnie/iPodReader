@@ -6,7 +6,7 @@ final class mainTest: XCTestCase {
         let iTunesDBURL = Bundle.module.url(forResource: "Resources/iTunesDB", withExtension: "")!
         let playCountsURL = Bundle.module.url(forResource: "Resources/Play Counts", withExtension: "")!
         
-        let mhdb = try Database(fileURL: iTunesDBURL)
+        let mhdb = try ITunesDB(fileURL: iTunesDBURL)
         let playcount = try PlayCounts(fileURL: playCountsURL)
         let trackPlayCounts = try playcount.getPlayedTracks(database: mhdb)
         var maxTimestamp: UInt32 = 0
