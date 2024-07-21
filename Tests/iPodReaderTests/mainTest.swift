@@ -9,7 +9,7 @@ final class mainTest: XCTestCase {
         let mhdb = try Database(fileURL: iTunesDBURL)
         let playcount = try PlayCounts(fileURL: playCountsURL)
         let trackPlayCounts = try playcount.getPlayedTracks(database: mhdb)
-        var maxTimestamp: uint32 = 0
+        var maxTimestamp: UInt32 = 0
 
         for (track, playcount) in trackPlayCounts {
             if maxTimestamp < playcount.lastPlayed {
