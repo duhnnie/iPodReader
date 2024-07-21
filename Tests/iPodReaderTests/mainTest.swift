@@ -1,5 +1,5 @@
 import XCTest
-@testable import iPodClassicScrobbler
+@testable import iPodReader
 
 final class mainTest: XCTestCase {
     func testEverything() throws {
