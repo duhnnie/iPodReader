@@ -1,6 +1,6 @@
 import Foundation
 
-class DataObject: ITunesDBElement {
+public final class DataObject: ITunesDBElement {
     
     override internal class var NAME: String {
         return "mhod"
@@ -67,7 +67,7 @@ class DataObject: ITunesDBElement {
     }
     
     public let type: DataObjectType
-    private(set) var value: String
+    public private(set) var value: String
     
     override init(fileURL: URL, offset: UInt64) throws {
         let fileHandle = try FileHandle(forReadingFrom: fileURL)

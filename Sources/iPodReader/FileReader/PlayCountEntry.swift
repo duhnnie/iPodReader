@@ -1,6 +1,6 @@
 import Foundation
 
-internal class PlayCountEntry {
+public class PlayCountEntry {
     
     internal enum Chunk: ChunkProtocol {
         case playCount

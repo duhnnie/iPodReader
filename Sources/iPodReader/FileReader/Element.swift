@@ -1,6 +1,6 @@
 import Foundation
 
-internal class Element {
+public class Element {
     
     internal class var NAME: String {
         return "element"

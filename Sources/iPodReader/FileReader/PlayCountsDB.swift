@@ -1,8 +1,8 @@
 import Foundation
 
-final class PlayCounts: ITunesDBElement {
+public final class PlayCountsDB: ITunesDBElement {
     
-    typealias TrackPlayCount = (track: TrackItem, playcount: PlayCountEntry)
+    public typealias TrackPlayCount = (track: TrackItem, playcount: PlayCountEntry)
         
     override internal class var NAME: String {
         return "mhdp"
@@ -29,7 +29,7 @@ final class PlayCounts: ITunesDBElement {
     public let singleEntryLength: UInt32
     public let numberOfEntries: UInt32
     
-    override init(fileURL: URL, offset: UInt64 = 0) throws {
+    public override init(fileURL: URL, offset: UInt64 = 0) throws {
         let fileHandle = try FileHandle(forReadingFrom: fileURL)
         
         defer {
@@ -84,6 +84,10 @@ final class PlayCounts: ITunesDBElement {
         }
         
         for (index, playcount) in playCountIndexes {
+            if (playcount.playCount < 1) {
+                continue
+            }
+            
             guard let track = tracks[safe: Int(index)] else {
                 throw ReadError.ElementNotFoundAtIndex(index: index)
             }

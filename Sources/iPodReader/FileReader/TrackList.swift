@@ -1,6 +1,6 @@
 import Foundation
 
-class TrackList: ITunesDBElement {
+public class TrackList: ITunesDBElement {
     
     override internal class var NAME: String {
         return "mhlt"
