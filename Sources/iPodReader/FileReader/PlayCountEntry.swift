@@ -58,4 +58,13 @@ public class PlayCountEntry {
         lastSkipped = try Utils.readAndParseUIntChunk(fileHandle: fileHandle, chunk: Chunk.lastSkipped, type: UInt32.self, baseOffset: offset)
     }
     
+    public init(playcount: UInt32, lastPlayed: UInt32, audioBookmark: UInt32, rating: UInt32, skipCount: UInt32, lastSkipped: UInt32) {
+        self.playCount = playcount
+        self.lastPlayed = lastPlayed
+        self.audioBookmark = audioBookmark
+        self.rating = rating
+        self.skipCount = skipCount
+        self.lastSkipped = lastSkipped
+    }
+    
 }
