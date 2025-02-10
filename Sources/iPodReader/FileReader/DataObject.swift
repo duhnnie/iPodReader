@@ -83,11 +83,7 @@ public final class DataObject: ITunesDBElement {
             baseOffset: offset
         )
         
-        guard
-            let type = try? DataObjectType(rawValue: Int(typeInt32)) ?? DataObjectType.unknown1
-        else {
-            throw ReadError.ParseHeaderFieldError(field: "type")
-        }
+        let type = DataObjectType(rawValue: Int(typeInt32)) ?? DataObjectType.unknown1
         
         self.type = type
         self.value = ""
